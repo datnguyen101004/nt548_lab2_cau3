@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE = 'sonar1'
+        SONARQUBE = 'sonar1' // Tên cấu hình SonarQube đã thêm trong Jenkins > Manage Jenkins > Configure System
     }
 
     stages {
@@ -12,22 +12,49 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                sh 'mvn clean compile'
-            }
-        }
+        stage('Build & Test') {
+            parallel {
+                stage('Build User Service') {
+                    steps {
+                        dir('user-service') {
+                            sh 'mvn clean compile'
+                            sh 'mvn test'
+                        }
+                    }
+                }
 
-        stage('Test') {
-            steps {
-                sh 'mvn test'
+                stage('Build Blog Service') {
+                    steps {
+                        dir('blog-service') {
+                            sh 'mvn clean compile'
+                            sh 'mvn test'
+                        }
+                    }
+                }
+
+                stage('Build API Gateway') {
+                    steps {
+                        dir('api-gateway') {
+                            sh 'mvn clean compile'
+                            sh 'mvn test'
+                        }
+                    }
+                }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('MySonarQube') {
-                    sh 'mvn verify sonar:sonar'
+                withSonarQubeEnv("${SONARQUBE}") {
+                    dir('user-service') {
+                        sh 'mvn verify sonar:sonar -Dsonar.projectKey=user-service'
+                    }
+                    dir('blog-service') {
+                        sh 'mvn verify sonar:sonar -Dsonar.projectKey=blog-service'
+                    }
+                    dir('api-gateway') {
+                        sh 'mvn verify sonar:sonar -Dsonar.projectKey=api-gateway'
+                    }
                 }
             }
         }
@@ -48,7 +75,7 @@ pipeline {
                         }
                     }
                 }
-                stage('Api gateway') {
+                stage('API Gateway') {
                     steps {
                         dir('api-gateway') {
                             sh 'docker build -t api-gateway:latest .'
@@ -61,7 +88,7 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 sh 'docker-compose down || true'
-                sh 'docker-compose up -d'
+                sh 'docker-compose up -d --build'
             }
         }
     }
