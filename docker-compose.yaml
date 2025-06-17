@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: microservices_db
+      MYSQL_USER: ms_user
+      MYSQL_PASSWORD: ms_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - microservices-net
+
+  user-service:
+    image: user-service:latest
+    container_name: user-service
+    build:
+      context: ./user-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microservices_db
+      SPRING_DATASOURCE_USERNAME: ms_user
+      SPRING_DATASOURCE_PASSWORD: ms_pass
+    depends_on:
+      - mysql
+    networks:
+      - microservices-net
+
+  blog-service:
+    image: blog-service:latest
+    container_name: blog-service
+    build:
+      context: ./blog-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/microservices_db
+      SPRING_DATASOURCE_USERNAME: ms_user
+      SPRING_DATASOURCE_PASSWORD: ms_pass
+    depends_on:
+      - mysql
+    networks:
+      - microservices-net
+
+  api-gateway:
+    image: api-gateway:latest
+    container_name: api-gateway
+    build:
+      context: ./api-gateway
+    ports:
+      - "9090:8080"
+    depends_on:
+      - user-service
+      - blog-service
+    networks:
+      - microservices-net
+
+volumes:
+  mysql-data:
+
+networks:
+  microservices-net:
+    driver: bridge
