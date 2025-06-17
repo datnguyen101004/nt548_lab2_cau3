@@ -2,10 +2,17 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE = 'sonar1' // Tên cấu hình SonarQube đã thêm trong Jenkins > Manage Jenkins > Configure System
+        SONARQUBE = 'sonar1'
     }
 
     stages {
+        stage('Start Dependencies with Docker Compose') {
+            steps {
+                sh 'docker-compose down || true'
+                sh 'docker-compose up -d'
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git credentialsId: 'github-token', url: 'https://github.com/datnguyen101004/nt548_lab2_cau3.git'
@@ -82,13 +89,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-
-        stage('Deploy with Docker Compose') {
-            steps {
-                sh 'docker-compose down || true'
-                sh 'docker-compose up -d --build'
             }
         }
     }
