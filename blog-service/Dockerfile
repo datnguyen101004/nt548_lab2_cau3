@@ -1,5 +1,5 @@
 # Use Maven with Java 21 as the build image
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+FROM maven:3.9.4-eclipse-temurin-17 as builder
 
 WORKDIR /app
 

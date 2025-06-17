@@ -1,5 +1,5 @@
 # Build stage: dùng Maven + Java 21 để build ứng dụng
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+FROM maven:3.9.4-eclipse-temurin-17 as builder
 
 # Thư mục làm việc trong container
 WORKDIR /app
