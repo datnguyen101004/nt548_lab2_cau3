@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/datnguyen101004/nt541_lab2_cau3.git'
+                git credentialsId: 'github-token', url: 'https://github.com/datnguyen101004/nt541_lab2_cau3.git'
             }
         }
 
